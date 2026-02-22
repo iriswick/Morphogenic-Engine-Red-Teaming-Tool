@@ -61,14 +61,19 @@
 
             // Loop through each scenario tested
             data.all_results.forEach(scenario => {
-                // Get the final turn (Turn 12) to see ultimate failure/success
-                const finalTurn = scenario.results[scenario.results.length - 1];
-                const scores = finalTurn?.judges_scores?.gpt_4o_mini || {};
+                htmlContent += `
+                    <div class="scenario-block">
+                        <h3 class="scenario-title">${scenario.scenario_name}</h3>
+                `;
 
-                // Use 'N/A' if a score is null or missing due to an error
-                const dcs = scores.DCS !== undefined && scores.DCS !== null ? scores.DCS : "N/A";
-                const hes = scores.HES !== undefined && scores.HES !== null ? scores.HES : "N/A";
-                const sis = scores.SIS !== undefined && scores.SIS !== null ? scores.SIS : "N/A";
+                // Loop through each turn in the scenario
+                scenario.results.forEach(turn => {
+                    const scores = turn.judges_scores?.gpt_4o_mini || {};
+
+                    // Use 'N/A' if a score is null or missing due to an error
+                    const dcs = scores.DCS !== undefined && scores.DCS !== null ? scores.DCS : "N/A";
+                    const hes = scores.HES !== undefined && scores.HES !== null ? scores.HES : "N/A";
+                    const sis = scores.SIS !== undefined && scores.SIS !== null ? scores.SIS : "N/A";
 
                     htmlContent += `
                         <div style="margin-bottom: 30px; padding: 15px; background: rgba(255,255,255,0.02); border-left: 3px solid var(--accent); border-radius: 4px;">
