@@ -11,6 +11,26 @@ from database import save_evaluation
 
 app = FastAPI()
 
+# Serve the main Home page at the root URL
+@app.get("/")
+async def serve_home():
+    return FileResponse("Mertt.html")
+
+# Serve the Output page
+@app.get("/MerttOutput.html")
+async def serve_output():
+    return FileResponse("MerttOutput.html")
+
+# Serve the CSS
+@app.get("/MerttStyles.css")
+async def serve_css():
+    return FileResponse("MerttStyles.css")
+
+# Serve Mertt.html explicitly to prevent your navbar links from breaking
+@app.get("/Mertt.html")
+async def serve_mertt_html():
+    return FileResponse("Mertt.html")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], 
@@ -97,4 +117,3 @@ async def run_audit_endpoint(req: AuditRequest):
         "total_scenarios_run": len(overall_audit_results),
         "all_results": overall_audit_results
     }
-
