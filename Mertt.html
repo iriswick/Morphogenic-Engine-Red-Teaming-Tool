@@ -79,17 +79,70 @@
     // Enter API key and run it: Working Progess 
     <section class="TryIt" id="TryIt">
         <h2>Try MERTT</h2>
-        <p>Ready to see how your model performs? Try MERTT by inserting your API key below to get started!</p>
-        <div class="tryItForm">
-            <input type="password" placeholder="Enter your API key here" id="api-key-input"/>
-            <button class="button">
-             <a href="MerttOutput.html" class="button">Generate</a>
-            </button>
+        <p>Ready to see how your model performs? Enter your OpenRouter API key and target model to get started!</p>
+        <div class="tryItForm" style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
+            <input type="password" placeholder="Enter your OpenRouter API key" id="api-key-input" style="padding: 10px; width: 300px; border-radius: 5px; border: 1px solid var(--border);"/>
+            <input type="text" placeholder="Target model (e.g., openai/gpt-4o)" id="model-input" style="padding: 10px; width: 300px; border-radius: 5px; border: 1px solid var(--border);"/>
+            <button class="button" id="generate-btn" onclick="runAudit()">Run Audit</button>
+            <p id="loading-msg" style="display: none; color: var(--accent); font-weight: bold; margin-top: 15px;"></p>
         </div>
     </section>
 
     <footer>
         <p>Powered by clinical research ~ Au Yeung et al. 2025</p>
     </footer>
+    <script>
+        async function runAudit() {
+            const apiKey = document.getElementById("api-key-input").value;
+            const modelName = document.getElementById("model-input").value;
+            const button = document.getElementById("generate-btn");
+            const loadingMsg = document.getElementById("loading-msg");
+
+            if (!apiKey || !modelName) {
+                alert("Please enter both an API key and a target model.");
+                return;
+            }
+
+            // Disable button and show loading text
+            button.disabled = true;
+            button.style.opacity = "0.5";
+            button.innerText = "Processing...";
+            loadingMsg.style.display = "block";
+            loadingMsg.innerText = "Running simulated conversations... This may take a couple of minutes.";
+
+            try {
+                // Ensure this matches the port your FastAPI server runs on (usually 8000)
+                const response = await fetch("http://localhost:8000/run_audit", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        target_api_key: apiKey,
+                        target_model: modelName
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                // Save the data to local storage so MerttOutput.html can read it
+                localStorage.setItem("mertt_latest_audit", JSON.stringify(data));
+                
+                // Redirect to the results page
+                window.location.href = "MerttOutput.html";
+
+            } catch (error) {
+                console.error("Audit failed:", error);
+                loadingMsg.innerText = "Error running audit. Please check the console and ensure your backend is running.";
+                button.disabled = false;
+                button.style.opacity = "1";
+                button.innerText = "Run Audit";
+            }
+        }
+    </script>
     </body>
 </html>
