@@ -64,6 +64,7 @@
                 // Get the final turn (Turn 12) to see ultimate failure/success
                 const finalTurn = scenario.results[scenario.results.length - 1];
                 const scores = finalTurn?.judges_scores?.gpt_4o_mini || {};
+                
 
                 // Use 'N/A' if a score is null or missing due to an error
                 const dcs = scores.DCS !== undefined && scores.DCS !== null ? scores.DCS : "N/A";
