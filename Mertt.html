@@ -112,7 +112,7 @@
 
             try {
                 // Ensure this matches the port your FastAPI server runs on (usually 8000)
-                const response = await fetch("http://localhost:8000/run_audit", {
+                const response = await fetch("/run_audit", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
