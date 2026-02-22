@@ -63,9 +63,3 @@ async def run_audit_endpoint(req: AuditRequest):
     except Exception as e:
         # This sends the REAL error to your browser
         return {"status": "Error", "message": str(e), "traceback": traceback.format_exc()}
-
-@app.get("/all_history")
-async def get_history():
-    from database import get_all_evaluations
-    results = get_all_evaluations()
-    return {"history": results}
