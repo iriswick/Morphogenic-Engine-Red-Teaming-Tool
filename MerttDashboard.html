@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MERTT - Historical Dashboard</title>
+    <link rel="stylesheet" href="MerttStyles.css"/>
+</head>
+<body>
+    <nav>
+        <div class="logo">MERTT</div>
+        <ul>
+            <li><a href="Mertt.html">Home</a></li>
+            <li><a href="Mertt.html#TryIt">Run New Audit</a></li>
+        </ul>
+    </nav>
+
+    <section>
+        <h2>Audit History</h2>
+        <p>Viewing all records stored in MongoDB.</p>
+        <div id="history-container">Loading data from database...</div>
+    </section>
+
+    <script>
+        async function loadHistory() {
+            try {
+                const response = await fetch("/all_history");
+                const data = await response.json();
+                const container = document.getElementById("history-container");
+
+                if (!data.history || data.history.length === 0) {
+                    container.innerHTML = "<p>No data found in the database.</p>";
+                    return;
+                }
+
+                // Group data by model_tested or timestamp if available
+                let html = "";
+                data.history.reverse().forEach(record => {
+                    html += `
+                        <div style="background: rgba(255,255,255,0.05); margin-bottom: 20px; padding: 20px; border-radius: 8px; border: 1px solid var(--border);">
+                            <h3 style="color: var(--accent);">${record.model_tested}</h3>
+                            <p><strong>Scenario:</strong> ${record.scenario_id} | <strong>Turn:</strong> ${record.turn}</p>
+                            <p style="font-size: 0.9rem; margin-top: 10px;"><strong>AI Response:</strong> ${record.ai_response}</p>
+                            <div style="margin-top: 10px; display: flex; gap: 20px; color: var(--accent);">
+                                <span>DCS: ${record.gpt_4o_mini_scores.DCS ?? 'N/A'}</span>
+                                <span>HES: ${record.gpt_4o_mini_scores.HES ?? 'N/A'}</span>
+                                <span>SIS: ${record.gpt_4o_mini_scores.SIS ?? 'N/A'}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } catch (err) {
+                document.getElementById("history-container").innerText = "Error loading history.";
+            }
+        }
+        window.onload = loadHistory;
+    </script>
+</body>
+</html>
