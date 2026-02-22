@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from openai import AsyncOpenAI
+from fastapi.responses import FileResponse
 
 # Import your custom functions
 from judge import evaluate_llm_response
@@ -96,3 +97,4 @@ async def run_audit_endpoint(req: AuditRequest):
         "total_scenarios_run": len(overall_audit_results),
         "all_results": overall_audit_results
     }
+
