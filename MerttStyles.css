@@ -87,44 +87,48 @@ nav ul li a:hover {
     animation: fadeIn 1s ease-in-out;
 }
 
-buttons {
-    display: flex;
-    gap: 1rem;
-    animation: fadeup 0.6s ease forwards 0.6s;
-    opacity: 0;
+.buttons {
+  display: flex;
+  gap: 1rem;
+  animation: fadeUp 0.6s ease forwards 0.6s;
+  color: white;
+  border-color: var(--surface);
 }
 
-button {
-    padding: 0.8rem 1.5rem;
-    font-size: 16px; 
-    color: white;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    text-decoration: none;
-    transition: all 1s ease;
+.button {
+  padding: 0.85rem 2rem;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: all 0.2s;
+  color: white;
+  border-color: var(--surface);
 }
 
-button a:first-child {
-    color: white;
-    text-decoration: none;
+.buttons a:first-child {
+  color: var(--bg);
+  border: 1px solid var(--accent);
 }
 
-button a:first-child:hover {
-    color: #99a8a9;
+.buttons a:first-child:hover {
+  background: rgba(219,233,243,0.1);
 }
 
-button a:last-child {
-    color: #2C3333;
-    background-color: #dbe9f3;
-    border-radius: 4px;
-    padding: 0.8rem 1.5rem;
-    text-decoration: none;
+.buttons a:last-child {
+  background: var(--bg);
+  color: white;
+  font-weight: bold;
+  border: 1px solid var(--accent2);
 }
 
-button a:last-child:hover {
-    background-color: #99a8a9;
-    box-shadow: 0 4px 8px rgba(153, 168, 169, 0.2);
+.buttons a:last-child:hover {
+  background: var(--muted);
+  color: var(--bg);
+  box-shadow: 0 0 30px rgba(73,134,178,0.4);
 }
+
 
 /*Section Styles*/
 
@@ -221,30 +225,20 @@ section p {
 }
 
 .steps {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    counter-reset: step-counter;
+  counter-reset: step-counter;
 }
 
 .step {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    align-items: flex-start;
-    padding: 2rem;
-    background: var(--surface);
-    counter-reset: step-counter;
+  counter-increment: step-counter;
 }
 
 .step::before {
-    content: "0" counter(step);
-    counter-increment: step;
-    font-size: 2.5rem;
-    color: #dbe9f3;
-    font-weight: bold;
-    min-width: 60px;
-    line-height: 1;
+  content: "0" counter(step-counter);
+  font-family: var(--mono);
+  font-size: 2.5rem;
+  color: var(--border);
+  min-width: 60px;
+  line-height: 1;
 }
 
 footer {
@@ -283,4 +277,45 @@ footer {
     .step::before {
         font-size: 1.5rem;
     }
+
+    /* Animated grid background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(219,233,243,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(219,233,243,0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+  z-index: 0;
+  pointer-events: none;
 }
+
+/* Glow orb at top */
+body::after {
+  content: '';
+  position: fixed;
+  top: -200px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(73,134,178,0.15) 0%, transparent 70%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/*CSS styles being used*/
+:root {
+  --bg: #09476F;        /* Navy Blue */
+  --surface: #073a5c;   /* Darker Navy */
+  --border: #536866;    /* Sage */
+  --accent: #DBE9F3;    /* Aquamarine */
+  --accent2: #4986B2;   /* Blue Grotto */
+  --text: #DBE9F3;      /* Aquamarine */
+  --muted: #9ab5c4;     /* Light muted blue */
+  --mono: 'Share Tech Mono', monospace;
+  --sans: 'Syne', sans-serif;
+}
+}
+

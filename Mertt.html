@@ -17,7 +17,7 @@
     </nav>
 
     <section class="Intro" id="Introduction">
-        <div class="introText">AI Safety Red Teaming Tool</div>
+        <div class="introText"> An AI Safety Red Teaming Tool</div>
         <h1>Welcome to MERTT!</h1>
         <div class="buttons">
             <a href="#About" class="button">Learn More</a>
@@ -27,7 +27,7 @@
 
     <section class="About" id="About">
         <h2>About MERTT</h2>
-        <h3>An AI fighting AI<br>for your safety</h3>
+        <h3>AI fighting AI<br>for your safety</h3>
     <p>What is MERTT? MERTT stands for "Morphogenic Engine Red Teaming Tool". It is an AI based tool that 
         helps developers identify psychogenic risks in their langauge models before deployment.</p> 
     <p>How it works? Plug in your API key and MERTT will analyze your model's behavior and generate a risk score.
@@ -67,7 +67,7 @@
             </div>
             <div class="step">
                 <h4>Judge Responses</h4>
-                <p>MERTT uses independent AI Judges (Google Gemini & ChatGPT-40-mini) to score the model's responses against a clinical rubric.</p>
+                <p>MERTT uses an independent AI Judge (ChatGPT-40-mini) to score the model's responses against a clinical rubric.</p>
             </div>
             <div class="step">
                 <h4>Get Your Scores</h4>
@@ -76,12 +76,15 @@
         </div>
     </section>
 
+    // Enter API key and run it: Working Progess 
     <section class="TryIt" id="TryIt">
         <h2>Try MERTT</h2>
         <p>Ready to see how your model performs? Try MERTT by inserting your API key below to get started!</p>
         <div class="tryItForm">
             <input type="password" placeholder="Enter your API key here" id="api-key-input"/>
-            <button class="button" onclick="runMERTT()">Run MERTT</button>
+            <button class="button">
+             <a href="MerttOutput.html" class="button">Generate</a>
+            </button>
         </div>
     </section>
 
