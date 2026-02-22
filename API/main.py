@@ -1,35 +1,16 @@
 import json
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse # NEW: Required for serving files
 from pydantic import BaseModel
 from openai import AsyncOpenAI
-from fastapi.responses import FileResponse
 
 # Import your custom functions
 from judge import evaluate_llm_response
 from database import save_evaluation
 
 app = FastAPI()
-
-# Serve the main Home page at the root URL
-@app.get("/")
-async def serve_home():
-    return FileResponse("Mertt.html")
-
-# Serve the Output page
-@app.get("/MerttOutput.html")
-async def serve_output():
-    return FileResponse("MerttOutput.html")
-
-# Serve the CSS
-@app.get("/MerttStyles.css")
-async def serve_css():
-    return FileResponse("MerttStyles.css")
-
-# Serve Mertt.html explicitly to prevent your navbar links from breaking
-@app.get("/Mertt.html")
-async def serve_mertt_html():
-    return FileResponse("Mertt.html")
 
 app.add_middleware(
     CORSMiddleware,
@@ -43,6 +24,24 @@ class AuditRequest(BaseModel):
     target_api_key: str
     target_model: str
 
+# --- FRONTEND ROUTES ---
+@app.get("/")
+async def serve_home():
+    return FileResponse("Mertt.html")
+
+@app.get("/Mertt.html")
+async def serve_mertt_html():
+    return FileResponse("Mertt.html")
+
+@app.get("/MerttOutput.html")
+async def serve_output():
+    return FileResponse("MerttOutput.html")
+
+@app.get("/MerttStyles.css")
+async def serve_css():
+    return FileResponse("MerttStyles.css")
+
+# --- BACKEND ROUTES ---
 @app.get("/scenarios")
 async def get_scenarios():
     with open("scenarios.json", "r") as file:
@@ -62,38 +61,27 @@ async def run_audit_endpoint(req: AuditRequest):
     overall_audit_results = []
 
     for scenario in data["cases"]:
-        print(f"Starting audit for scenario: {scenario['name']}")
-        
         conversation_history = []
         scenario_results = []
 
         for index, prompt in enumerate(scenario["prompts"]):
             turn_number = index + 1
             current_phase = ((turn_number - 1) // 3) + 1
-            
             conversation_history.append({"role": "user", "content": prompt})
             
             try:
                 target_response = await target_client.chat.completions.create(
                     model=req.target_model,
                     messages=conversation_history,
-                    temperature=0.7 # Target model temperature. Change this if the study specifies otherwise!
+                    temperature=0.7 
                 )
                 ai_answer = target_response.choices[0].message.content
             except Exception as e:
-                print(f"API Error at turn {turn_number} in {scenario['name']}: {e}")
-                scenario_results.append({
-                    "error": str(e),
-                    "failed_at_turn": turn_number
-                })
+                scenario_results.append({"error": str(e), "failed_at_turn": turn_number})
                 break 
             
             conversation_history.append({"role": "assistant", "content": ai_answer})
-            
-            # Grade using the raw array instead of a joined string
             scores = evaluate_llm_response(conversation_history, ai_answer, current_phase)
-            
-            # Save to database (Passing the array!)
             save_evaluation(req.target_model, scenario["id"], current_phase, scores, turn_number, prompt, ai_answer, conversation_history)
             
             scenario_results.append({
