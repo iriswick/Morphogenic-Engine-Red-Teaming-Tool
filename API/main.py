@@ -10,10 +10,9 @@ from database import save_evaluation
 
 app = FastAPI()
 
-# --- CORS SETUP: Allows your HTML frontend to talk to this API ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, restrict this. For a hackathon, let it ride.
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -22,93 +21,78 @@ app.add_middleware(
 class AuditRequest(BaseModel):
     target_api_key: str
     target_model: str
-    scenario_id: str 
 
 @app.get("/scenarios")
 async def get_scenarios():
-    """Reads the scenarios.json file and sends it to the frontend."""
     with open("scenarios.json", "r") as file:
         data = json.load(file)
     return data
 
 @app.post("/run_audit")
 async def run_audit_endpoint(req: AuditRequest):
-    # 1. Load the requested scenario
     with open("scenarios.json", "r") as file:
         data = json.load(file)
-    
-    scenario = next((case for case in data["cases"] if case["id"] == req.scenario_id), None)
-    if not scenario:
-        return {"error": "Scenario not found"}
 
-    # --- THE MAGIC ROUTER ---
-    # 2. Check if the user wants to test a Gemini model or an OpenRouter model
-    if "gemini" in req.target_model.lower():
-        # Use Google's Native OpenAI Compatibility Endpoint
-        target_client = AsyncOpenAI(
-            base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
-            api_key=req.target_api_key
-        )
-    else:
-        # Use OpenRouter
-        target_client = AsyncOpenAI(
-            base_url="https://openrouter.ai/api/v1",
-            api_key=req.target_api_key
-        )
-    # ------------------------
+    target_client = AsyncOpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=req.target_api_key
+    )
     
-    conversation_history = []
-    audit_results = []
+    overall_audit_results = []
 
-    # 3. The 12-Turn Conversation Loop
-    for index, prompt in enumerate(scenario["prompts"]):
-        turn_number = index + 1
-        current_phase = ((turn_number - 1) // 3) + 1
+    for scenario in data["cases"]:
+        print(f"Starting audit for scenario: {scenario['name']}")
         
-        conversation_history.append({"role": "user", "content": prompt})
-        
-        # --- Added Try/Catch for Hackathon Resilience ---
-        try:
-            # Talk to the Target LLM (Works for both OpenRouter AND Native Gemini!)
-            target_response = await target_client.chat.completions.create(
-                model=req.target_model,
-                messages=conversation_history,
-                temperature=0.7
-            )
-            ai_answer = target_response.choices[0].message.content
-        except Exception as e:
-            print(f"API Error at turn {turn_number}: {e}")
-            # Gracefully return whatever results we successfully gathered before the crash
-            return {
-                "status": "Partial Audit Complete (API Error)",
-                "error_details": str(e),
-                "failed_at_turn": turn_number,
-                "model_tested": req.target_model,
-                "scenario_tested": scenario["name"],
-                "results": audit_results 
-            }
-        # ------------------------------------------------
-        
-        conversation_history.append({"role": "assistant", "content": ai_answer})
-        history_string = "\n".join([f"{msg['role']}: {msg['content']}" for msg in conversation_history])
-        
-        # 4. Grade using BOTH Judges
-        scores = evaluate_llm_response(history_string, ai_answer, current_phase)
-        
-        # 5. Save to database
-        save_evaluation(req.target_model, current_phase, scores)
-        
-        audit_results.append({
-            "turn": turn_number,
-            "phase": current_phase,
-            "prompt": prompt,
-            "ai_response": ai_answer,
-            "judges_scores": scores
+        conversation_history = []
+        scenario_results = []
+
+        for index, prompt in enumerate(scenario["prompts"]):
+            turn_number = index + 1
+            current_phase = ((turn_number - 1) // 3) + 1
+            
+            conversation_history.append({"role": "user", "content": prompt})
+            
+            try:
+                target_response = await target_client.chat.completions.create(
+                    model=req.target_model,
+                    messages=conversation_history,
+                    temperature=0.7 # Target model temperature. Change this if the study specifies otherwise!
+                )
+                ai_answer = target_response.choices[0].message.content
+            except Exception as e:
+                print(f"API Error at turn {turn_number} in {scenario['name']}: {e}")
+                scenario_results.append({
+                    "error": str(e),
+                    "failed_at_turn": turn_number
+                })
+                break 
+            
+            conversation_history.append({"role": "assistant", "content": ai_answer})
+            
+            # Grade using the raw array instead of a joined string
+            scores = evaluate_llm_response(conversation_history, ai_answer, current_phase)
+            
+            # Save to database (Passing the array!)
+            save_evaluation(req.target_model, scenario["id"], current_phase, scores, turn_number, prompt, ai_answer, conversation_history)
+            
+            scenario_results.append({
+                "turn": turn_number,
+                "phase": current_phase,
+                "prompt": prompt,
+                "ai_response": ai_answer,
+                "judges_scores": scores
+            })
+
+        overall_audit_results.append({
+            "scenario_id": scenario["id"],
+            "scenario_name": scenario["name"],
+            "theme": scenario["theme"],
+            "results": scenario_results
         })
 
     return {
-        "status": "Audit Complete",
+        "status": "Full Audit Complete",
         "model_tested": req.target_model,
-        "scenario_tested": scenario["name"],
-        "results": audit_results
+        "total_scenarios_run": len(overall_audit_results),
+        "all_results": overall_audit_results
     }

@@ -14,18 +14,22 @@ else:
     db = db_client["mertt_database"]
     collection = db["evaluations"]
 
-def save_evaluation(model_name, phase, evaluation_results):
+
+def save_evaluation(model_name, scenario_id, phase, evaluation_results, turn, prompt, ai_response, history_array):
     record = {
         "model_tested": model_name,
+        "scenario_id": scenario_id,
         "phase": phase,
-        "DCS": evaluation_results.get("DCS"),
-        "HES": evaluation_results.get("HES"),
-        "SIS": evaluation_results.get("SIS")
+        "turn": turn,
+        "user_prompt": prompt,
+        "ai_response": ai_response,
+        "conversation_history": history_array,
+        
+        "gpt_4o_mini_scores": evaluation_results.get("gpt_4o_mini", {})
     }
     
     if collection is not None:
         collection.insert_one(record)
-        print("Scores successfully saved to MongoDB!")
+        print(f"Scores & Logs for {scenario_id} (Turn {turn}) successfully saved to MongoDB!")
     else:
-        # Just print it to the terminal so you can verify it works
-        print(f"MOCK SAVE - {model_name} Phase {phase} Scores: {evaluation_results}")
+        print(f"MOCK SAVE - {model_name} | {scenario_id} | Turn {turn} | Phase {phase}")
