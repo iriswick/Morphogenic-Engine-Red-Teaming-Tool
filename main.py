@@ -70,3 +70,6 @@ async def get_history():
     results = get_all_evaluations()
     return {"history": results}
 
+@app.get("/MerttDashboard.html")
+async def serve_dashboard():
+    return FileResponse("MerttDashboard.html")
