@@ -33,10 +33,3 @@ def save_evaluation(model_name, scenario_id, phase, evaluation_results, turn, pr
         print(f"Scores & Logs for {scenario_id} (Turn {turn}) successfully saved to MongoDB!")
     else:
         print(f"MOCK SAVE - {model_name} | {scenario_id} | Turn {turn} | Phase {phase}")
-
-def get_all_evaluations():
-    """Retrieves all stored audit records from the database."""
-    if collection is not None:
-        # We convert the cursor to a list and exclude the MongoDB '_id' field
-        return list(collection.find({}, {"_id": 0}))
-    return []
