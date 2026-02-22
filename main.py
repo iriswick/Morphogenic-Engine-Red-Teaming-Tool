@@ -69,7 +69,3 @@ async def get_history():
     from database import get_all_evaluations
     results = get_all_evaluations()
     return {"history": results}
-
-@app.get("/MerttDashboard.html")
-async def serve_dashboard():
-    return FileResponse("MerttDashboard.html")
