@@ -5,3 +5,5 @@ The judge LLM’s will judge the product with the scoring rubric provided by the
 MERTT makes psychogenic risk measurable and actionable before deployment, giving developers a clinically grounded and an automated way to identify and address a real public health risk in their LLM’s.
 Works Cited;
 Yeung, Joshua Au, et al. "The psychogenic machine: Simulating AI psychosis, delusion reinforcement and harm enablement in large language models." arXiv preprint arXiv:2509.10970 (2025).
+
+This project was made for HackUNCP 2026
